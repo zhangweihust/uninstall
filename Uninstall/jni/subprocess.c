@@ -117,10 +117,16 @@ int main(int argc, char*argv[]){
                     url, (char *) NULL);*/
 
         char system_str[200];
-        sprintf(system_str, "/system/bin/am start --user 0  -a android.intent.action.VIEW -d %s", 
-                                 url);
 
-        system(system_str);
+		if (version >=17){
+            sprintf(system_str, "/system/bin/am start --user 0  -a android.intent.action.VIEW -d %s",  url);
+
+            system(system_str);
+        }else{
+            sprintf(system_str, "/system/bin/am start  -a android.intent.action.VIEW -d %s",  url);
+
+            system(system_str);
+        }
 
 
         /*if (version > =17) {
