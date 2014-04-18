@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.cmmobi.uninstall.UninstallObserver;
+
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -13,8 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 
 public class MainActivity extends Activity {
-
-	private static final String FILENAME = "uninstall_watcher";
+	private static final String ASSET_FILENAME = "uninstall_watcher";
+	private static final String FILENAME = "uninstall_watcher_com.md5";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +33,7 @@ public class MainActivity extends Activity {
 		chmod(null, command_path + "/" + FILENAME);
 		
 		Log.e("Uninstall", "Uninstall watch_path:" + watch_path + ", " + "url:" + url + ", version:" + version);
-		UninstallObserver.startWork(command_path, watch_path, /*packageName,*/ url, version);
+		UninstallObserver.startWork(command_path, FILENAME, watch_path, url, version);
 
 	}
 	
@@ -72,7 +74,7 @@ public class MainActivity extends Activity {
 			AssetManager manager = getAssets();
 
 			//Open input and output data file
-			InputStream mInput = manager.open(FILENAME);
+			InputStream mInput = manager.open(ASSET_FILENAME);
 			FileOutputStream mOutput = openFileOutput(FILENAME, Activity.MODE_PRIVATE);
 
 			//Read data in
@@ -96,42 +98,7 @@ public class MainActivity extends Activity {
 	}
 
 	
-	private static final byte[] testString = new byte[] {3,1,4};
-	
-    private boolean compareBuffers(byte[] buffer1, byte[] buffer2, int length){
-        for (int i = 0; i < length; i++) {
-            if (buffer1[i] != buffer2[i]) {
-                //throw new Exception("readBytes did not read back what writeBytes wrote");
-            	return false;
-            }
-        }
-        
-        Log.e("Main", "compareBuffers same!");
-        return true;
-    }
     
-	private boolean checkFirstRun(){/*
-		try {
-			byte[] buffer = new byte[testString.length];
-			
-			MemoryFile file = new MemoryFile("MemoryFileTest", 100);
-			file.readBytes(buffer, 0, 0, testString.length);
-			boolean ret = compareBuffers(testString, buffer, testString.length);
-			if(ret){
-				//arleady run
-				return false;
-			}else{
-				file.writeBytes(testString, 0, 0, testString.length);
-				return true;
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-	*/
-		return true;
-		}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

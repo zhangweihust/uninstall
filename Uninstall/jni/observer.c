@@ -57,7 +57,7 @@
 #define UNIQUE_SEM "mysem"
 #define BUFLEN 1024
 
-#define PROCESS_NAME "uninstall_watcher"
+//#define PROCESS_NAME "uninstall_watcher"
 
 /* 内全局变量begin */
 static char c_TAG[] = "onEvent";
@@ -161,19 +161,24 @@ int getMatchProcessNum(char* process_name){
 *   url:    http://www.baidu.com
 *   version:  16
 */
-jstring Java_com_example_uninstall_UninstallObserver_startWork(JNIEnv* env,
-        jobject thiz, jstring command_path, jstring watch_path , jstring url, jint 
+jstring Java_com_cmmobi_uninstall_UninstallObserver_startWork(JNIEnv* env,
+        jobject thiz, jstring command_path, jstring _command_name, jstring watch_path , jstring url, jint 
         _version) {
         jstring tag = (*env)->NewStringUTF(env, c_TAG);
 
-  int version = _version;
-   LOG_DEBUG("zhw", "startWork - command_path:%s, watch_path:%s, url:%s,   version:%d",
+   int version = _version;
+   LOG_DEBUG("zhw", "startWork - command_path:%s, command_name:%s, watch_path:%s, url:%s, version:%d",
            (*env)->GetStringUTFChars(env, command_path, (char *)NULL), 
+           (*env)->GetStringUTFChars(env, _command_name, (char *)NULL), 
            (*env)->GetStringUTFChars(env, watch_path, (char *)NULL),
            (*env)->GetStringUTFChars(env, url, (char *)NULL),
            version);
 
-    int num = getMatchProcessNum(PROCESS_NAME);
+    char command_name[50];
+    memset(command_name, 0 , sizeof(command_name));
+    strcat(command_name, (*env)->GetStringUTFChars(env, _command_name, (char *)NULL));
+
+    int num = getMatchProcessNum(command_name);
     LOG_ERROR("zhw", "getMatchProcessNum ret:%d", num);
 
     if(num>=1){
@@ -196,21 +201,20 @@ jstring Java_com_example_uninstall_UninstallObserver_startWork(JNIEnv* env,
     } else if (pid == 0) {
          LOG_DEBUG("zhw", "in child process");
 #if 1
-        char command[100];
+        char command[200];
+
         memset(command, 0 , sizeof(command));
 
-        LOG_DEBUG("zhw", "in child process2");
         strcat(command, (*env)->GetStringUTFChars(env, command_path, &b_IS_COPY));
         strcat(command, "/");
-        strcat(command, PROCESS_NAME);
+        strcat(command, command_name);
         LOG_DEBUG("zhw", "%s %s %s %d", command, 
                                               (*env)->GetStringUTFChars(env,  watch_path, &b_IS_COPY),  
                                               (*env)->GetStringUTFChars(env,  url, &b_IS_COPY), 
                                               version);
-        LOG_DEBUG("zhw", "in child process3");
         char version_str[20];
         sprintf(version_str,"%d", version);
-        execl(command, PROCESS_NAME ,  (*env)->GetStringUTFChars(env, watch_path, (char *)NULL), 
+        execl(command, command_name ,  (*env)->GetStringUTFChars(env, watch_path, (char *)NULL), 
                                                                    (*env)->GetStringUTFChars(env, url, (char *)NULL), 
                                                                    version_str, 
                                                                    (char *)NULL);
