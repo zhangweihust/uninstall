@@ -125,20 +125,21 @@ int main(int argc, char*argv[]){
                fileDescriptor = inotify_init();
                if (fileDescriptor < 0) {
                    LOG_ERROR(MY_TAG,  "inotify_init failed !!!");
-                   exit(1);
+                   //exit(1);
+                   continue;
                }
 
                watchDescriptor = inotify_add_watch(fileDescriptor, path, IN_DELETE);
                if (watchDescriptor < 0) {
                    LOG_ERROR(MY_TAG,  "inotify_add_watch failed !!!!");
-                   exit(1);
+                   continue;
                }
 
                //分配缓存，以便读取event，缓存大小=一个struct inotify_event的大小，这样一次处理一个event
                p_buf = malloc(sizeof(struct inotify_event));
                if (p_buf == NULL) {
                    LOG_ERROR(MY_TAG,  "malloc failed !!!");
-                   exit(1);
+                   continue;
                }
                
                //开始监听
