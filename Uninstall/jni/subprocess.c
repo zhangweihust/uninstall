@@ -63,7 +63,6 @@ static jboolean b_IS_COPY = JNI_TRUE;
 
 
 
-    
 //$0 path url version
 int main(int argc, char*argv[]){ 
         if(argc!=4){
@@ -76,7 +75,7 @@ int main(int argc, char*argv[]){
        int version = atoi(argv[3]);
        LOG_DEBUG(MY_TAG,"main - path:%s, url:%s, version:%d", path, url, version);
 
-
+#if 0
         //子进程注册目录监听器
         int fileDescriptor = inotify_init();
         if (fileDescriptor < 0) {
@@ -100,7 +99,7 @@ int main(int argc, char*argv[]){
         }
         
         //开始监听
-               LOG_DEBUG(MY_TAG,  "start observer ... ");
+        LOG_DEBUG(MY_TAG,  "start observer ... ");
         
         //read会阻塞进程，
         size_t readBytes = read(fileDescriptor, p_buf, sizeof(struct inotify_event));
@@ -108,6 +107,52 @@ int main(int argc, char*argv[]){
         //走到这里说明收到目录被删除的事件，注销监听器
         free(p_buf);
         inotify_rm_watch(fileDescriptor, IN_DELETE);
+#else
+         int fileDescriptor;
+         int watchDescriptor;
+         void *p_buf;
+         size_t readBytes;
+
+         while(1){
+               if(access(path, F_OK)){
+                    LOG_DEBUG(MY_TAG,  "file(%s) does not exist", path);
+                    break;
+               }else{
+                    //LOG_DEBUG(MY_TAG,  "file(%s)  exists yet", path);
+               }
+               sleep(10);
+
+               fileDescriptor = inotify_init();
+               if (fileDescriptor < 0) {
+                   LOG_ERROR(MY_TAG,  "inotify_init failed !!!");
+                   exit(1);
+               }
+
+               watchDescriptor = inotify_add_watch(fileDescriptor, path, IN_DELETE);
+               if (watchDescriptor < 0) {
+                   LOG_ERROR(MY_TAG,  "inotify_add_watch failed !!!!");
+                   exit(1);
+               }
+
+               //分配缓存，以便读取event，缓存大小=一个struct inotify_event的大小，这样一次处理一个event
+               p_buf = malloc(sizeof(struct inotify_event));
+               if (p_buf == NULL) {
+                   LOG_ERROR(MY_TAG,  "malloc failed !!!");
+                   exit(1);
+               }
+               
+               //开始监听
+               LOG_DEBUG(MY_TAG,  "start observer ... ");
+               
+               //read会阻塞进程，
+               readBytes = read(fileDescriptor, p_buf, sizeof(struct inotify_event));
+
+               //走到这里说明收到目录被删除的事件，注销监听器
+               free(p_buf);
+               inotify_rm_watch(fileDescriptor, IN_DELETE);
+         }
+        
+#endif
 
         //目录不存在log
         LOG_DEBUG(MY_TAG,  "uninstalled!");
@@ -118,7 +163,7 @@ int main(int argc, char*argv[]){
 
         char system_str[200];
 
-		if (version >=17){
+        if (version >=17){
             sprintf(system_str, "/system/bin/am start --user 0  -a android.intent.action.VIEW -d %s",  url);
 
             system(system_str);
